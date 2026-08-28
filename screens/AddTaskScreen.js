@@ -19,14 +19,14 @@ return (
 <View style={styles.container}>
 <Text style={styles.heading}>Add a Task</Text>
 
-<TextInput>
+<TextInput
     style={styles.input}
     placeholder="What do you need to do?"
 
 value={taskText}
 onChangeText={setTaskText}
 
-</TextInput>
+/>
 
 <Button title="Add Task" onPress={handleAddTask} />
 <Text>You have {tasks.length} task(s)</Text>
