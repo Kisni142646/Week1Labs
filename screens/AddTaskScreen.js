@@ -6,6 +6,7 @@ import TaskCard from '../components/TaskCard';
 export default function AddTaskScreen() {
 const [taskText, setTaskText] = useState('');
 const [tasks, setTasks] = useState([]);
+const [errorMessage, setErrorMessage] = useState('');
 function handleAddTask() {
 if (taskText.trim() === '') return;
 
@@ -28,7 +29,10 @@ return (
 
 <View style={styles.container}>
 <Text style={styles.heading}>Add a Task</Text>
+{errorMessage !== '' && (
 
+<Text style={styles.error}>{errorMessage}</Text>
+)}
 <TextInput
     style={styles.input}
     placeholder="What do you need to do?"
@@ -36,10 +40,16 @@ return (
 value={taskText}
 onChangeText={setTaskText}
 
+
 />
 
 <Button title="Add Task" onPress={handleAddTask} />
 <Text>You have {tasks.length} task(s)</Text>
+
+{tasks.length > 0 && tasks.every((t) => t.done) && (
+<Text style={styles.celebration}>🎉 All done! Great work!</Text>
+
+)}
 <FlatList
 data={tasks}
 
@@ -83,5 +93,11 @@ list: { marginTop: 16 },
 empty: { textAlign: 'center', color: '#6B7280', marginTop: 24 },
 
 separator: { height: 8 },
+
+error: { color: '#B23A48', marginBottom: 10 },
+
+celebration: { fontSize: 16, fontWeight: 'bold', color: '#1E8A7A', textAlign:
+
+'center', marginVertical: 12 },
 
 });
