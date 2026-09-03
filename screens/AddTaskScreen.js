@@ -1,72 +1,101 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 import { View, Text, TextInput, Button, StyleSheet, FlatList } from 'react-native';
 
 import TaskCard from '../components/TaskCard';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 export default function AddTaskScreen() {
 const [taskText, setTaskText] = useState('');
 const [tasks, setTasks] = useState([]);
 const [errorMessage, setErrorMessage] = useState('');
-function handleAddTask() {
-if (taskText.trim() === '') return;
+const [isLoaded, setIsLoaded] = useState(false);
 
-const newTask = { id: Date.now().toString(), title: taskText, done: false };
+useEffect(() => {
+  const loadTasks = async () => {
+    try {
+      const savedData = await AsyncStorage.getItem('tasks');
+      if (savedData !== null) {
+        setTasks(JSON.parse(savedData));
+      }
+    } catch (error) {
+      console.error('Failed to load tasks:', error);
+    } finally {
+      setIsLoaded(true);
+    }
+  };
 
-setTasks([...tasks, newTask]);
-setTaskText('');
-}
+  loadTasks();
+}, []);
+
+useEffect(() => {
+  if (!isLoaded) return;
+
+  const saveTasks = async () => {
+    try {
+      await AsyncStorage.setItem('tasks', JSON.stringify(tasks));
+    } catch (error) {
+      console.error('Failed to save tasks:', error);
+    }
+  };
+
+  saveTasks();
+}, [tasks, isLoaded]);
 function handleToggleTask(id) {
-
-setTasks(
-tasks.map((t) =>
-
-t.id === id ? { ...t, done: !t.done } : t
-
+setTasks((currentTasks) =>
+currentTasks.map((task) =>
+task.id === id ? { ...task, done: !task.done } : task
 )
 );
 }
+function handleAddTask() {
+    if (taskText.trim() === '') {
+      setErrorMessage('Please type a task before adding it.');
+      return;
+    }
+    const newTask = { id: Date.now().toString(), title: taskText, done: false };
+    setTasks([...tasks, newTask]);
+    setTaskText('');
+    setErrorMessage('');
+  }
 return (
 
 <View style={styles.container}>
 <Text style={styles.heading}>Add a Task</Text>
-{errorMessage !== '' && (
 
-<Text style={styles.error}>{errorMessage}</Text>
-)}
-<TextInput
-    style={styles.input}
-    placeholder="What do you need to do?"
+<TextInput style={styles.input}
+placeholder="What do you need to do?"
 
 value={taskText}
 onChangeText={setTaskText}
 
-
 />
+
+{errorMessage !== '' && (
+<Text style={styles.error}>{errorMessage}</Text>
+)}
 
 <Button title="Add Task" onPress={handleAddTask} />
 <Text>You have {tasks.length} task(s)</Text>
 
 {tasks.length > 0 && tasks.every((t) => t.done) && (
 <Text style={styles.celebration}>🎉 All done! Great work!</Text>
-
 )}
+
 <FlatList
 data={tasks}
 
 keyExtractor={(item) => item.id}
+
 renderItem={({ item }) => (
 <TaskCard
 title={item.title}
 done={item.done}
-
 onToggle={() => handleToggleTask(item.id)}
-
 />
 )}
+
 ListEmptyComponent={
-
-<Text style={styles.empty}>No tasks yet — add one above! 👆</Text>
-
+<Text style={styles.empty}>No tasks yet - add one above! ☝</Text>
 }
 
 ItemSeparatorComponent={() => <View style={styles.separator} />}
@@ -89,15 +118,9 @@ input: { borderWidth: 1, borderColor: '#D8DEE9', borderRadius: 8, padding: 10,
 
 marginBottom: 10 },
 list: { marginTop: 16 },
-
 empty: { textAlign: 'center', color: '#6B7280', marginTop: 24 },
-
 separator: { height: 8 },
-
 error: { color: '#B23A48', marginBottom: 10 },
-
-celebration: { fontSize: 16, fontWeight: 'bold', color: '#1E8A7A', textAlign:
-
-'center', marginVertical: 12 },
+celebration: { fontSize: 16, fontWeight: 'bold', color: '#1E8A7A', textAlign: 'center', marginVertical: 12 },
 
 });
